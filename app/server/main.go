@@ -109,7 +109,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/upload", uploadHandler)
+	http.HandleFunc("/compress", uploadHandler)
 	fmt.Println("Server started on :8080")
 	http.ListenAndServe(":8080", nil)
 }

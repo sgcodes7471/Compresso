@@ -1,5 +1,7 @@
 "use client";
 
+import { BACKEND_URL } from "@/lib/constants";
+import { redirect } from "next/navigation";
 import { useState } from "react";
 
 export default function FileUpload() {
@@ -19,23 +21,28 @@ export default function FileUpload() {
     formData.append("file", file);
 
     try {
-      const response = await fetch("http://localhost:8080/upload", {
+      const res = await fetch(`/api/compress`); 
+      const result = await res.json();
+      if(result.status === 500)  throw new Error();
+      if(result.status === 300)  redirect('/premium');
+      const value = result.value;
+
+      const response = await fetch(`${BACKEND_URL}/compress`, {
         method: "POST",
         body: formData,
       });
 
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "compressed_file.txt";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-      } else {
-        alert("File upload failed");
-      }
+      if(!response.ok) throw new Error();
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `compressed_file_${Date.now()}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      
     } catch (error) {
       console.error("Error uploading file:", error);
     } finally {
