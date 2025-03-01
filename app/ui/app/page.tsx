@@ -24,9 +24,10 @@ export default function FileUpload() {
       const res = await fetch(`/api/compress`); 
       const result = await res.json();
       if(result.status === 500)  throw new Error();
-      if(result.status === 300)  redirect('/premium');
-      const value = result.value;
-
+      if(result.status === 300)  redirect('/premiums');
+      const {userId,value} = result;
+      console.log(`${userId}:${value}`);
+      
       const response = await fetch(`${BACKEND_URL}/compress`, {
         method: "POST",
         body: formData,

@@ -1,6 +1,6 @@
 import prisma from '@/lib/prisma';
 import { RedisGet } from '@/lib/redis'
-import { auth , currentUser } from '@clerk/nextjs/server'
+import { auth } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server';
 
 export async function GET() {
@@ -12,25 +12,25 @@ export async function GET() {
       //redirect to sign-in page
       return redirectToSignIn();
     }
-    const user = await currentUser()
-    console.log(user);
-    console.log(userId);
   
     //check in redis 
     const value:number|boolean = await RedisGet(userId);
-  
+    if(!value && typeof value!=='number') throw new Error('Some Issue in Redis');
+
     //if free capacity is full, then check for premium membership in postgres
-    if(!value) {
+    if(typeof value === 'number' && value>=20) {
       //if premium membership does not exist/expired then redirect to premium pages
-      const user = await prisma.User.findFirst({
+
+      const user = await prisma.user.findFirst({
         where:{userId:userId}
       })
       if(!user || user.validTill>Date.now()) NextResponse.json({ error:true , status:300 })
     }
     
     //else direct to make a request to backend_url/compress 
-    return NextResponse.json({ value:value,status:200 });
+    return NextResponse.json({ userId:userId,value:value,status:200 });
   } catch (error) {
+    console.log(error);
     return NextResponse.json({ error:true,status:500 })
   }
 }
